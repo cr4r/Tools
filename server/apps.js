@@ -1,3 +1,7 @@
+"use strict";
+//=====================================================================================//
+// Initialize Module
+const { root, tools } = require("./config.json");
 require("dotenv").config();
 const fastify = require("fastify")({ logger: true });
 //=====================================================================================//
@@ -17,31 +21,35 @@ const fastifyMultipart = require("@fastify/multipart");
 
 const maxCookie = 24 * 60 * 60 * 1000 * 360; // 360 hari
 
-// const { AlitaRoutes } = require("./routes/alita.routes");
+const { YoutubeRoutes } = require("./routes/tools");
+
+//=====================================================================================//
 
 //=====================================================================================//
 // function connect Database
-const startDatabase = async () => {
+const startDatabase = async (app) => {
   // Memulai server tanpa DB
-  await runAPINoDB.startServerAPI();
-  let status = false,
+  let statuss = false,
     i = 0;
-  fastify.log.info(`Sedang mencoba menghubungkan database`);
-  while (!status) {
+  app.log.info(`Sedang mencoba menghubungkan database`);
+  while (!statuss) {
     try {
       await mongoose.connect(process.env.MONGODB_URI, {
         serverSelectionTimeoutMS: 4000,
       });
       console.log("✔✔✔ Database sudah terhubung ✔✔✔");
-      status = true;
+      statuss = true;
     } catch (err) {
       // "Error!, Gagal terhubung ke database"
       console.log(`[${i}] Error!!! Gagal terhubung ke database, try again`);
     }
     i++;
   }
-  // Stop server tanpa DB
-  await runAPINoDB.stopServerAPI();
+  // let { status, messagge, apps } = await runAPINoDB.startServerAPI(app);
+  // if (status) {
+  //   // Stop server tanpa DB
+  //   await runAPINoDB.stopServerAPI(app);
+  // }
 };
 //=====================================================================================//
 
@@ -100,25 +108,40 @@ fastify.register(fStatic, {
 //=====================================================================================//
 //Setup URL (Routing)
 //
-// fastify.register(AlitaRoutes, { prefix: root.url });
+fastify.register(YoutubeRoutes, { prefix: "/tools" });
+//=====================================================================================//
+
+//=====================================================================================//
+// Handle Error Routing
+//
+fastify.setNotFoundHandler((request, reply) => {
+  reply.status(404).send({
+    status: false,
+    message: "Saat ini belum ada halaman website",
+    error: "Not Found",
+  });
+});
 //=====================================================================================//
 
 //=====================================================================================//
 // Start database dan server
-const start = async () => {
+const start = async (app) => {
   try {
+    let teks = "Saat ini belum ada halaman website";
+    let linkAPi = "/:id?";
     // Menghubungkan database
-    await startDatabase();
+    await startDatabase(app);
+
     // Memulai server
-    await fastify.listen({
+    await app.listen({
       address: "0.0.0.0",
       port: process.env.PORT || 3000,
     });
-    fastify.log.info(
+    app.log.info(
       `Server telah berjalan di port ${fastify.server.address().port}`
     );
   } catch (err) {
-    fastify.log.error(err);
+    app.log.error(err);
     process.exit(1);
   }
 };
@@ -126,5 +149,5 @@ const start = async () => {
 
 //=====================================================================================//
 // RUN Function
-start();
+start(fastify);
 //=====================================================================================//

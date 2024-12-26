@@ -1,15 +1,6 @@
 {
-  "root": "/",
-  "alita": {
-    "dashboard": { "url": "/alita", "sidebar": "Alita Dashboard" },
-    "report": { "url": "/alita/report", "sidebar": "Alita Report" },
-    "material": {
-      "url": "/alita/report/material",
-      "sidebar": "Alita Material"
-    },
-    "dismantle": {
-      "url": "/alita/dismantle",
-      "sidebar": "Alita Dismantle"
-    }
+  "root": { "url": "/" },
+  "tools": {
+    "youtube": { "url": "/youtube", "sidebar": "Youtube Dashboard" }
   }
 }

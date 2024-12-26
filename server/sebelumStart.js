@@ -1,32 +1,31 @@
-const app = require("fastify")({ logger: false });
+const startServerAPI = async (app) => {
+  let teks = "Saat ini belum ada halaman website";
+  let linkAPi = "/:id?";
+  try {
+    app.get(linkAPi, async (req, reply) => {
+      reply.status(500).send(teks);
+    });
+    app.post(linkAPi, async (req, reply) => {
+      reply.status(500).send(teks);
+    });
+    app.put(linkAPi, async (req, reply) => {
+      reply.status(500).send(teks);
+    });
+    app.delete(linkAPi, async (req, reply) => {
+      reply.status(500).send(teks);
+    });
 
-const startServerAPI = () => {
-  let teks = "API belum bisa digunakan, Sedang menghubungkan database";
-  let linkAPi = "/api/:id";
-
-  app.get(linkAPi, async (req, reply) => {
-    reply.status(500).send(teks);
-  });
-  app.post(linkAPi, async (req, reply) => {
-    reply.status(500).send(teks);
-  });
-  app.put(linkAPi, async (req, reply) => {
-    reply.status(500).send(teks);
-  });
-  app.delete(linkAPi, async (req, reply) => {
-    reply.status(500).send(teks);
-  });
-
-  app.listen({ port: process.env.PORT || 3000 }, (err, address) => {
-    if (err) {
-      app.log.error(err);
-      process.exit(1);
-    }
-    app.log.info(`API server berjalan tanpa database! on ${address}`);
-  });
+    //// Memulai server
+    await app.listen({ address: "0.0.0.0", port: process.env.PORT || 3000 });
+    app.log.info(`Server telah berjalan di port ${app.server.address().port}`);
+    return { apps: app, status: true, message: "Berhasil menjalankan server" };
+  } catch (err) {
+    app.log.info(err);
+    return { status: false, message: err };
+  }
 };
 
-const stopServerAPI = () => {
+const stopServerAPI = (app) => {
   app.close();
 };
 
