@@ -11,7 +11,6 @@ const ejs = require("ejs");
 const path = require("path");
 //=====================================================================================//
 const mongoose = require("mongoose");
-const runAPINoDB = require("./sebelumStart");
 // Session and cookie with mongo
 const fastifyCors = require("@fastify/cors");
 const fastifySession = require("@fastify/session");
@@ -45,11 +44,6 @@ const startDatabase = async (app) => {
     }
     i++;
   }
-  // let { status, messagge, apps } = await runAPINoDB.startServerAPI(app);
-  // if (status) {
-  //   // Stop server tanpa DB
-  //   await runAPINoDB.stopServerAPI(app);
-  // }
 };
 //=====================================================================================//
 

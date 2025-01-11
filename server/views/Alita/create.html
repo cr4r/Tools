@@ -1,0 +1,171 @@
+<div class="row justify-content-lg-center">
+  <div class="col-lg-20">
+    <%-include('template/isi.html')%>
+    <!-- Nav -->
+    <div class="js-nav-scroller hs-nav-scroller-horizontal mb-5">
+      <ul class="nav nav-tabs align-items-center" role="tablist">
+        <li class="nav-item">
+          <a
+            class="nav-link active"
+            id="create-report-odu-tab"
+            href="#create-report-odu"
+            data-bs-toggle="pill"
+            data-bs-target="#create-report-odu"
+            role="tab"
+            aria-controls="report"
+            aria-selected="true"
+            >ODU</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            id="create-report-idu-tab"
+            href="#create-report-idu"
+            data-bs-toggle="pill"
+            data-bs-target="#create-report-idu"
+            role="tab"
+            aria-controls="create-report-idu"
+            aria-selected="false"
+            >IDU</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            id="create-report-modem-tab"
+            href="#create-report-modem"
+            data-bs-toggle="pill"
+            data-bs-target="#create-report-modem"
+            role="tab"
+            aria-controls="create-report-modem"
+            aria-selected="false"
+            >MODEM</a
+          >
+        </li>
+      </ul>
+    </div>
+    <!-- End Nav -->
+
+    <!-- Isi Tab -->
+    <div class="tab-content">
+      <!-- Isi Tab ODU -->
+      <div
+        class="tab-pane fade show active"
+        id="create-report-odu"
+        role="tabpanel"
+        aria-labelledby="create-report-odu-tab"
+      >
+        <!-- ISI KARTU ODU -->
+        <div class="card-group">
+          <div class="card">
+            <div class="card-body text-center" id="frequency">
+              <small class="text-cap">Frequency</small>
+              <span class="js-counter d-block display-5 text-dark mb-2"
+                >0 GHZ</span
+              >
+            </div>
+          </div>
+          <div class="card">
+            <div id="subbandOdu" class="card-body text-center">
+              <small class="text-cap">Sub Band</small>
+              <span class="js-counter d-block display-5 text-dark mb-2" id=""
+                >A</span
+              >
+            </div>
+          </div>
+          <div class="card">
+            <div id="hiloOdu" class="card-body text-center">
+              <small class="text-cap">HIGH / LOW</small>
+              <span class="js-counter d-block display-5 text-dark mb-2" id=""
+                >HIGH</span
+              >
+            </div>
+          </div>
+          <div class="card">
+            <div id="typeOdu" class="card-body">
+              <small class="text-cap">TYPE ODU</small>
+              <span class="js-counter d-block display-5 text-dark mb-2" id=""
+                >IHG</span
+              >
+            </div>
+          </div>
+          <div class="card">
+            <div id="serialnumber" class="card-body">
+              <small class="text-cap">SERIAL NUMBER</small>
+              <span class="js-counter d-block display-5 text-dark mb-2" id=""
+                >00000000</span
+              >
+            </div>
+          </div>
+          <div class="card">
+            <div id="manufacture" class="card-body">
+              <small class="text-cap">MANUFACTURE</small>
+              <span class="js-counter d-block display-5 text-dark mb-2" id=""
+                >2012.06</span
+              >
+            </div>
+          </div>
+        </div>
+        <!-- END ISI KARTU -->
+        <form id="form-add-report-odu" class="card">
+          <div class="card-body">
+            <div class="input-group">
+              <span class="input-group-text">Deskripsi</span>
+              <textarea
+                class="form-control"
+                aria-label="With textarea"
+                id="generateTextODU"
+                placeholder="Masukkan info lengkap disini untuk di generate"
+              ></textarea>
+            </div>
+            <div class="input-group form-control">
+              <div
+                id="ss-odu"
+                class="js-dropzone row dz-dropzone dz-dropzone-card"
+              >
+                <div class="dz-message">
+                  <img
+                    class="avatar avatar-xl avatar-4x3 mb-3"
+                    src="/assets/svg/illustrations/oc-browse.svg"
+                    alt="Image Description"
+                  />
+
+                  <h5>Tarik atau Paste hasil screenshot mu</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button type="submit" id="simpanReportODU" class="btn btn-primary">
+              Save changes
+            </button>
+          </div>
+        </form>
+      </div>
+      <!-- END Isi Tab ODU -->
+      <!-- Isi Tab IDU -->
+      <div
+        class="tab-pane fade"
+        id="create-report-idu"
+        role="tabpanel"
+        aria-labelledby="create-report-idu-tab"
+      >
+        IDU
+      </div>
+      <!-- END Isi Tab IDU -->
+      <!-- Isi Tab MODEM -->
+      <div
+        class="tab-pane fade"
+        id="create-report-modem"
+        role="tabpanel"
+        aria-labelledby="create-report-modem-tab"
+      >
+        MODEM
+      </div>
+      <!-- END Isi Tab MODEM -->
+    </div>
+    <!-- End TAB -->
+  </div>
+  <!-- End Col -->
+</div>

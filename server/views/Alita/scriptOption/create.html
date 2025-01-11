@@ -1,0 +1,239 @@
+<script>
+  $(document).ready(function () {
+    url = "<%=info.config.alita.report.url%>";
+    const changeButtonSubmit = (
+      cekBtn = true,
+      idnya = ".material_modal .submit-button"
+    ) => {
+      let submit_btn = $(idnya);
+      if (cekBtn) {
+        submit_btn.removeClass("loading");
+        submit_btn.prop("disabled", false);
+      } else {
+        submit_btn.addClass("loading");
+        submit_btn.prop("disabled", true);
+      }
+    };
+    //------------------------- Untuk Tab ODU -------------------------//
+    const textarea = $('textarea[id="generateTextODU"]');
+    // Fungsi untuk membangun HTML
+    function buildHtml(title, matches) {
+      if (matches.length > 1) {
+        return `
+      <small class="text-cap">${title}</small>
+      <div class="dropdown-divider"></div>
+      ${matches
+        .map(
+          (match) =>
+            `<span class="js-counter d-block display-5 text-dark mb-2">${match.trim()}</span>`
+        )
+        .join("")}
+    `;
+      }
+      return "";
+    }
+
+    function convertTextAreaOdu(textarea) {
+      const textareaValue = textarea.val();
+      const str = textareaValue.split(/\s+/).join(" ").toUpperCase();
+
+      const frequencyRegex = /(\d+(GHZ|ghz))/g;
+      const typeRegex = /\d*(IAP|IAG3|IAG|IAP3|IHG)\d*/g;
+      const highLowRegex = /(HIGH|LOW)/g;
+      const subBandRegex = /\s([A-T])\s/g;
+      const serialNumberRegex = /\d{8}/g;
+      const manufactureRegex = /\d{4}\.\d{2}/g;
+      const oduRegex = /ODU\s+\d+(GHZ|ghz)/g;
+
+      // Mencari semua elemen
+      const frequencyMatches = str.match(frequencyRegex) || [];
+      const typeMatches = str.match(typeRegex) || [];
+      const highLowMatches = str.match(highLowRegex) || [];
+      const subBandMatches = str.match(subBandRegex) || [];
+      const serialNumberMatches = str.match(serialNumberRegex) || [];
+      const manufactureMatches = str.match(manufactureRegex) || [];
+      return {
+        frequencyMatches,
+        typeMatches,
+        highLowMatches,
+        subBandMatches,
+        serialNumberMatches,
+        manufactureMatches,
+      };
+    }
+
+    // Menambahkan event listener untuk perubahan pada textarea
+    textarea.on("change keyup paste", async () => {
+      // Mengambil nilai dari textarea
+      let {
+        frequencyMatches,
+        typeMatches,
+        highLowMatches,
+        subBandMatches,
+        serialNumberMatches,
+        manufactureMatches,
+      } = convertTextAreaOdu(textarea);
+
+      // Mengupdate HTML untuk setiap kategori
+      $("#create-report-odu #frequency").html(
+        buildHtml("Frequency", frequencyMatches)
+      );
+      $("#create-report-odu #typeOdu").html(buildHtml("Type ODU", typeMatches));
+      $("#create-report-odu #hiloOdu").html(
+        buildHtml("High / Low", highLowMatches)
+      );
+      $("#create-report-odu #subbandOdu").html(
+        buildHtml("Sub band", subBandMatches)
+      );
+      $("#create-report-odu #serialnumber").html(
+        buildHtml("Serial Number", serialNumberMatches)
+      );
+      $("#create-report-odu #manufacture").html(
+        buildHtml("Manufacture Date", manufactureMatches)
+      );
+    });
+
+    //Drop or Paste foto untuk screenshot
+    Dropzone.options.ssOdu = {
+      url: url, // Ganti dengan URL endpoint server Anda
+      autoProcessQueue: false, // Jangan proses otomatis saat file ditambahkan
+      clickable: false,
+      uploadMultiple: true,
+      addRemoveLinks: true, // Tambahkan tautan untuk menghapus file
+      maxFiles: 100, // Jumlah maksimum file yang dapat dipilih
+      parallelUploads: 100, // Jumlah maksimum file yang dapat diupload secara bersamaan
+
+      init: function () {
+        let timer = null;
+        let drpzn = this;
+        let idFormReport = "#form-add-report-odu ";
+        let idButton = idFormReport + "button#simpanReportODU";
+        let isPasteAllowed = false;
+
+        // Ambil elemen #ss-odu
+        const ssOduElement = document.querySelector(idFormReport + "#ss-odu");
+
+        // Ketika tombol "Simpan" ditekan
+        document
+          .querySelector(idButton)
+          .addEventListener("click", function (e) {
+            e.preventDefault();
+            // Buat Timer untuk mengecek berapa kecepatan tranfer ke server
+            timer = new Timer();
+            timer.start();
+            if (drpzn.getQueuedFiles().length > 0) {
+              drpzn.processQueue(); // Proses antrian file jika ada
+            } else {
+              showToast(
+                "GAGAL !!!",
+                "Tidak ada file untuk diunggah.",
+                timer.stop()
+              );
+            }
+          });
+        //// Mengizinkan paste di area upload
+        ssOduElement.addEventListener("mouseenter", (e) => {
+          isPasteAllowed = true; // Izinkan paste
+        });
+        //// Tidak mengizinkan paste di luar area upload
+        ssOduElement.addEventListener("mouseleave", (e) => {
+          isPasteAllowed = false; // Tidak izinkan paste
+        });
+        //// saat menekan paste maka lakukan action
+        ssOduElement.addEventListener("paste", (e) => {
+          //// Jika paste di izinkan
+          if (isPasteAllowed) {
+            let items = e.clipboardData.items; // Mengambil item dari clipboard
+            console.log(items);
+            for (let i = 0; i < items.length; i++) {
+              if (items[i].type.startsWith("image/")) {
+                // Memeriksa apakah item adalah gambar
+                let file = items[i].getAsFile(); // Mengambil file gambar
+                console.log(file); // Menampilkan gambar
+                drpzn.addFile(file); // Menambahkan file ke Dropzone
+              }
+            }
+          } else {
+            e.preventDefault();
+          }
+        });
+
+        // Menangani event ketika file berhasil
+        this.on("successmultiple", function (file, { status, message }) {
+          console.log(status, JSON.stringify(message));
+          showToast(
+            status ? "BERHASIL !!!" : "GAGAL !!!",
+            message,
+            timer.stop()
+          );
+          changeButtonSubmit(true, idButton);
+        });
+
+        // Menangani event ketika terjadi kesalahan saat mengunggah
+        this.on("errormultiple", function (file, errorMessage) {
+          console.error("Terjadi kesalahan saat mengunggah:", errorMessage);
+          changeButtonSubmit(true, idButton);
+        });
+
+        this.on("sending", async function (file, xhr, formData) {
+          changeButtonSubmit(false, idButton);
+          const newUrl = "<%=info.config.alita.report.url%>/odu";
+          // Mengambil nilai dari textarea
+          let {
+            frequencyMatches,
+            typeMatches,
+            highLowMatches,
+            subBandMatches,
+            serialNumberMatches,
+            manufactureMatches,
+          } = await convertTextAreaOdu($(textarea)); // Pastikan Anda menggunakan jQuery jika textarea adalah jQuery object
+
+          // Tambahkan data ke formData
+          formData.append("frequencyMatches", JSON.stringify(frequencyMatches));
+          formData.append("typeMatches", JSON.stringify(typeMatches));
+          formData.append("highLowMatches", JSON.stringify(highLowMatches));
+          formData.append("subBandMatches", JSON.stringify(subBandMatches));
+          formData.append(
+            "serialNumberMatches",
+            JSON.stringify(serialNumberMatches)
+          );
+          formData.append(
+            "manufactureMatches",
+            JSON.stringify(manufactureMatches)
+          );
+
+          // Mengumpulkan semua file yang diunggah
+          for (const file of drpzn.getQueuedFiles()) {
+            formData.append("files[]", file); // Pastikan Anda menggunakan 'files[]' untuk mengirim banyak file
+          }
+
+          // Melihat semua data yang ada di FormData
+          formData.forEach((value, key) => {
+            console.log(`di formData${key}:`, value);
+          });
+
+          fetch(newUrl, {
+            method: "POST",
+            body: formData,
+          })
+            .then((response) => response.json())
+            .then((data) => console.log(data))
+            .catch((error) => console.error("Error:", error));
+        });
+      },
+    };
+    ////------------------------- Untuk Tab IDU -------------------------//
+
+    ////------------------------- Untuk Tab MODEM -------------------------//
+    //// Cek apakah Dropzone sudah ada
+    if (Dropzone.instances.length > 0) {
+      // Hentikan semua instans Dropzone yang ada
+      Dropzone.instances.forEach(function (dropzone) {
+        dropzone.destroy();
+      });
+    }
+
+    //// INIT Dropzone
+    HSCore.components.HSDropzone.init("#ss-odu");
+  });
+</script>

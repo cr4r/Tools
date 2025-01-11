@@ -1,0 +1,55 @@
+<!-- Profile Cover -->
+<div class="profile-cover">
+  <div class="profile-cover-img-wrapper">
+    <img
+      class="profile-cover-img"
+      src="/assets/img/1920x400/img3.jpg"
+      alt="Image Description"
+    />
+  </div>
+</div>
+<!-- End Profile Cover -->
+
+<!-- Profile Header -->
+<div class="text-center mb-5">
+  <!-- Avatar -->
+  <div class="avatar avatar-xxl avatar-circle profile-cover-avatar">
+    <img class="avatar-img" src="<%=info.akun.foto%>" alt="Image Description" />
+    <span class="avatar-status avatar-status-success"></span>
+  </div>
+  <!-- End Avatar -->
+
+  <h1 class="page-header-title">
+    <%=info.akun.nama%>
+    <i
+      class="bi-patch-check-fill fs-2 text-primary"
+      data-bs-toggle="tooltip"
+      data-bs-placement="top"
+      title="Top endorsed"
+    ></i>
+  </h1>
+
+  <!-- List -->
+  <ul class="list-inline list-px-2">
+    <li class="list-inline-item">
+      <i class="bi-building me-1"></i>
+      <span><%=info.akun.role%></span>
+    </li>
+    <!-- 
+    <li class="list-inline-item">
+      <i class="bi-geo-alt me-1"></i>
+      <a href="#"><%=info.akun.lokasi%>,</a>
+      <a href="#">ID</a>
+    </li> -->
+
+    <li class="list-inline-item">
+      <i class="bi-calendar-week me-1"></i>
+      <%const today = new Date(); const targetDate = new Date('2024-08-12');
+      const diffInMs = today.getTime() - targetDate.getTime(); const diffInDays
+      = Math.floor(diffInMs / (1000 * 60 * 60 * 24)); %>
+      <span><%=info.akun.join%> (<%=diffInDays%> Hari)</span>
+    </li>
+  </ul>
+  <!-- End List -->
+</div>
+<!-- End Profile Header -->

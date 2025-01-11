@@ -1,0 +1,345 @@
+<!-- <link
+  rel="stylesheet"
+  href="../assets/tom-select/dist/css/tom-select.bootstrap5.css"
+/> -->
+<!-- <script src="../assets/tom-select/dist/js/tom-select.complete.min.js"></script> -->
+
+<script>
+  //// Init untuk get, post, put, delete
+  let urlMaterial = "<%-info.alita.material.url%>";
+  let urlDismantle = "<%-info.alita.dismantle.url%>";
+  let urlStokDismantle = "<%-info.alita.dismantle.stok.url%>";
+  const apiClient = new ApiClient({
+    sanitize: false, // Nonaktifkan sanitasi global
+  });
+
+  //// Auto resize pada input agar kelihatan
+  // Event listener untuk setiap input dengan class auto-resize
+  const textarea = document.getElementsByClassName("smart-textarea");
+  if (textarea && textarea?.length > 0) {
+    new SmartTextarea(".smart-textarea", {
+      minHeight: 50,
+      maxHeight: 200,
+    });
+  }
+
+  //// Jika tab tersebut aktif
+  class TabManager {
+    constructor() {
+      this.initializeTabs();
+    }
+
+    async initializeTabs() {
+      // Tunggu DOM siap
+      await this.waitForDOMReady();
+
+      // Aktifkan tab default
+      this.activateDefaultTab();
+
+      // Setup event listener
+      this.setupTabListeners();
+    }
+
+    waitForDOMReady() {
+      return new Promise((resolve) => {
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", resolve);
+        } else {
+          resolve();
+        }
+      });
+    }
+
+    activateDefaultTab() {
+      const defaultTab = document.querySelector("#stok-manual-dismantle-tab");
+
+      if (defaultTab) {
+        const tabTrigger = new bootstrap.Tab(defaultTab);
+        tabTrigger.show();
+
+        // Inisialisasi data default
+        this.initStokManualDismantle();
+      }
+    }
+
+    setupTabListeners() {
+      const tabs = document.querySelectorAll(".nav-link");
+
+      tabs.forEach((tab) => {
+        tab.addEventListener("shown.bs.tab", (event) => {
+          const targetId = tab.getAttribute("data-bs-target");
+
+          switch (targetId) {
+            case "#stok-manual-dismantle":
+              this.initStokManualDismantle();
+              break;
+            case "#laporan-dismantle":
+              this.initLaporanDismantle();
+              break;
+          }
+        });
+      });
+    }
+
+    async initStokManualDismantle() {
+      try {
+        const data = await this.fetchStokManualDismantleData();
+        this.renderStokManualDismantleTable(data);
+      } catch (error) {
+        console.error("Gagal memuat data:", error);
+      }
+    }
+
+    async fetchStokManualDismantleData() {
+      let { status, message } = await apiClient.send({
+        url: urlStokDismantle,
+        method: "GET",
+      });
+      return { status, message };
+    }
+
+    async renderStokManualDismantleTable({ status, message }) {
+      const idClassDivTable = "div_table_stok_manual";
+      if (!status) return showToast("GAGAL !!!", "Gagal membuat table");
+      // Render Table
+      const headers = ["SAP", "Deskripsi", "Serial Number", "QTY", "Actions"];
+      // rows => datatable
+      const rows = message.map((item) => {
+        return [
+          item._id,
+          item.sap,
+          item.deskripsi,
+          item.serialNumber,
+          item.qty,
+          "Actions",
+        ];
+      });
+
+      // Memanggil fungsi untuk membuat tabel
+      await createTable(idClassDivTable, {
+        headers: headers,
+        rows: rows,
+        dataOptions: JSON.stringify({
+          columnDefs: [
+            {
+              targets: [0],
+              orderable: false,
+            },
+          ],
+          order: [],
+          info: {
+            totalQty: "#datatableEntriesInfoTotalQty",
+          },
+          entries: "#datatableEntries",
+          search: "#datatableWithSearchInput",
+          isResponsive: false,
+          pageLength: 5,
+          isShowPaging: false,
+          pagination: "datatableWithSearchPagination",
+        }),
+        tableClass:
+          "js-stok-manual-dismantle table table-borderless table-thead-bordered table-nowrap table-align-middle card-table",
+      });
+
+      await HSCore.components.HSDatatables.init(".js-stok-manual-dismantle", {
+        select: {
+          style: "multi",
+          selector: 'td:first-child input[type="checkbox"]',
+          classMap: {
+            checkAll: "#datatableWithCheckboxSelectAll",
+            counter: "#datatableWithCheckboxSelectCounter",
+            counterInfo: "#datatableWithCheckboxSelectCounterInfo",
+          },
+        },
+      });
+      let btnDeleteStokDismantle = $(`.delete-${idClassDivTable}`);
+      btnDeleteStokDismantle.on("click", async function () {
+        const selectedData = await getSelectedDataTable(
+          ".js-stok-manual-dismantle"
+        );
+        if (selectedData.length > 0) {
+          let { status, message } = await apiClient.send({
+            url: `${urlStokDismantle}/${selectedData.id}`,
+            method: "DELETE",
+          });
+          console.log(status, message);
+          console.log("Data yang dipilih:", selectedData);
+        } else {
+          console.log("Tidak ada data yang dipilih.");
+        }
+      });
+    }
+
+    async initLaporanDismantle(data) {}
+    // Metode lainnya...
+  }
+
+  const destroyHsTomSelect = (selectt) => {
+    $(selectt).hstomseelect("destroy");
+  };
+  window.addEventListener("load", function () {
+    new TabManager();
+    //// Init Table Stok Dismantle
+    const sStokDs = ".js-select";
+    //// Klik Otomatis
+    // $(".add-stok-manual-dismantle")[0].click();
+
+    let sAddStokDismantle = ".submit-add-stok-dismantle";
+    let fAddStokDismantle = "#form-add-stok-dismantle";
+
+    //// Select deskripsi add stok
+    const deskripsiSelectDismantle = new TomSelect(".js-select-deskripsi", {
+      maxItems: 1,
+      valueField: "sap",
+      labelField: "deskripsi",
+      searchField: "deskripsi",
+      load: async function (query, callback) {
+        var self = this;
+        if (self.loading > 1) {
+          callback();
+          return;
+        }
+
+        await fetch(urlMaterial)
+          .then((response) => response.json())
+          .then((json) => {
+            callback(json.message);
+            self.settings.load = null;
+          })
+          .catch(() => {
+            callback();
+          });
+      },
+      render: {
+        option: function (item, escape) {
+          return `<div class="py-2 d-flex">
+  					<div class="mb-1">
+  						<span class="h5">
+  							${escape(item.deskripsi)}
+  						</span>
+  					</div>
+  			 		<div class="ms-auto">${escape(item.sap)}</div>
+  				</div>`;
+        },
+      },
+      onItemAdd: async function (value, item) {
+        // Mengubah nilai yang dimasukkan menjadi array
+        const selectedItem = this.options[value];
+        if (selectedItem) {
+          const newValue = [selectedItem.sap, selectedItem.deskripsi];
+
+          this.control_input.setAttribute(
+            "data-selected",
+            JSON.stringify(newValue)
+          );
+
+          try {
+            let { status, message } = await apiClient.send({
+              url: `${urlStokDismantle}/${selectedItem.sap}`,
+              method: "GET",
+            });
+            let submitButtonDismantle = $(fAddStokDismantle).find(
+              'button[type="submit"]'
+            );
+            let judulAddDismantle = $(
+              ".modal-add-stok-manual-dismantle #judul-modal-stok-dismantle"
+            );
+            let txtSerialNumber = $(fAddStokDismantle + " #serialNumber");
+            let txtId = $(fAddStokDismantle + " #_id");
+            //// Saat input deskripsi jika ada maka berubah menjadi mode edit
+            if (status) {
+              //// Memasukkan serial number ke input otomatis
+              txtSerialNumber.val(message.serialNumber.join(","));
+              $(fAddStokDismantle + " #_id").val(message._id);
+              $(fAddStokDismantle + " #qty").val(message.qty);
+              submitButtonDismantle.text("EDIT");
+              judulAddDismantle.text("Edit Stok Dismantle");
+            } else {
+              txtId.val("");
+              txtSerialNumber.val("");
+              submitButtonDismantle.text("TAMBAH");
+              judulAddDismantle.text("Tambah Stok Dismantle");
+            }
+          } catch (e) {
+            handleErr({ e });
+          }
+        }
+      },
+      onItemRemove: function () {
+        let txtSerialNumber = $(fAddStokDismantle + " #serialNumber");
+        let txtId = $(fAddStokDismantle + " #_id");
+        let submitButtonDismantle = $(fAddStokDismantle).find(
+          'button[type="submit"]'
+        );
+        let judulAddDismantle = $(
+          ".modal-add-stok-manual-dismantle #judul-modal-stok-dismantle"
+        );
+        // Menghapus atribut data saat item dihapus
+        this.control_input.removeAttribute("data-selected");
+        txtId.val("");
+        txtSerialNumber.val("");
+        submitButtonDismantle.text("TAMBAH");
+        judulAddDismantle.text("Tambah Stok Dismantle");
+      },
+    });
+
+    //// Submit add stok dismantle
+    $(fAddStokDismantle).on("submit", async (e) => {
+      e.preventDefault(); // Mencegah submit default
+      const timer = new Timer();
+      timer.start();
+
+      // Dapatkan tombol submit menggunakan this
+      const submitButton = $(fAddStokDismantle + " .submit-add-stok-dismantle");
+      changeButtonSubmit(false, submitButton);
+
+      // Ambil data dari form
+      try {
+        let formData = await getDataForm(fAddStokDismantle);
+
+        //// Ambil data di select
+        const selectedDataDeskripsi =
+          document
+            .querySelector("#deskripsi-tomselected")
+            ?.getAttribute("data-selected") ?? null;
+
+        // Destructuring dan modifikasi formData secara langsung
+        const processedFormData = {
+          ...formData,
+          deskripsi: selectedDataDeskripsi,
+          serialNumber: pecahString(formData.serialNumber),
+        };
+
+        const method =
+          $(sAddStokDismantle).text().trim() == "EDIT" ? "PUT" : "POST";
+
+        const { status, message } = await apiClient.send({
+          method,
+          url: urlStokDismantle,
+          data: processedFormData,
+          timer,
+          submitButton,
+        });
+        showToast(status ? "BERHASIL !!!" : "GAGAL !!!", message, timer.stop());
+        if (status) {
+          deskripsiSelectDismantle.clear();
+          $(fAddStokDismantle).find("input, textarea, select").val("");
+        }
+      } catch (e) {
+        handleErr({ e, timer, submitButton });
+      } finally {
+        // Pastikan tombol submit selalu dikembalikan
+        changeButtonSubmit(true, submitButton);
+      }
+    });
+
+    //// Pecahkan string SN untuk menghitung qty
+    let snAddStokInput = $("#form-add-stok-dismantle #serialNumber");
+    snAddStokInput.on("keyup", function (e) {
+      //// Menghitung SN dan di masukkan ke qty. berdasarkan tanda ("/" dan",")
+      let hasilPecah = pecahString(snAddStokInput.val());
+      let qtyAddStokInput = $("#form-add-stok-dismantle #qty");
+      qtyAddStokInput[0].value = hasilPecah.length;
+    });
+  });
+</script>

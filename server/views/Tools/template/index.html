@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+  <%- include('./head.html')%>
+  <body
+    class="has-navbar-vertical-aside navbar-vertical-aside-show-xl footer-offset"
+  >
+    <!-- ========== HEADER ========== -->
+    <%- include('./header.html')%>
+    <!-- ========== END HEADER ========== -->
+
+    <%if (info.css){ if(Array.isArray(info.css)){ info.css.forEach((value)=>{%>
+    <!-- CSS Custom <%=value%> -->
+    <link rel="stylesheet" href="/assets/css/custom/<%=value%>.css" />
+    <!-- END CSS Custom <%=value%>-->
+    <%})}else{%>
+    <!-- CSS Custom -->
+    <link rel="stylesheet" href="/assets/css/custom/<%=info.css%>.css" />
+    <!-- END CSS Custom -->
+    <%}}%>
+    <!-- ========== MAIN CONTENT ========== -->
+    <!-- sidebar -->
+    <%- include('./sidebar.html')%>
+
+    <main id="content" role="main" class="main">
+      <!-- Content -->
+      <div class="content container-fluid">
+        <%- include(`../${info.index}.html`) %>
+        <!-- End Row -->
+      </div>
+      <!-- End Content -->
+
+      <!-- Footer -->
+      <%- include('./footer.html')%>
+      <!-- End Footer -->
+    </main>
+    <!-- ========== END MAIN CONTENT ========== -->
+    <!-- ========== Toast Umum ========== -->
+    <div
+      id="liveToast"
+      class="position-fixed toast hide"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+      style="top: 20px; right: 20px; z-index: 1000"
+    >
+      <div class="toast-header">
+        <div class="d-flex align-items-center flex-grow-1">
+          <div class="flex-shrink-0">
+            <img
+              class="avatar avatar-sm avatar-circle"
+              src="<%=info.akun.foto%>"
+              alt="<%=info.akun.nama%>"
+            />
+          </div>
+          <div class="flex-grow-1 ms-3">
+            <h5 class="mb-0"><%=info.akun.nama%></h5>
+            <small class="ms-auto waktu"><%=info.akun.posisi%></small>
+          </div>
+          <div class="text-end">
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="toast"
+              aria-label="Close"
+            ></button>
+          </div>
+        </div>
+      </div>
+      <div class="toast-body">-</div>
+    </div>
+    <!-- ========== End Toast Umum ========== -->
+    <%-include('./script.html')%>
+  </body>
+</html>

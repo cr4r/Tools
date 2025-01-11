@@ -1,0 +1,449 @@
+<div class="row justify-content-lg-center">
+  <div class="col-lg-20">
+    <%-include('template/isi.html')%>
+
+    <!-- Nav -->
+    <div class="js-nav-scroller hs-nav-scroller-horizontal mb-5">
+      <span class="hs-nav-scroller-arrow-prev" style="display: none">
+        <a class="hs-nav-scroller-arrow-link" href="javascript:;">
+          <i class="bi-chevron-left"></i>
+        </a>
+      </span>
+
+      <span class="hs-nav-scroller-arrow-next" style="display: none">
+        <a class="hs-nav-scroller-arrow-link" href="javascript:;">
+          <i class="bi-chevron-right"></i>
+        </a>
+      </span>
+
+      <ul class="nav nav-tabs align-items-center" role="tablist">
+        <li class="nav-item">
+          <a
+            class="nav-link active"
+            id="report-tab"
+            href="#report-tab"
+            data-bs-toggle="pill"
+            data-bs-target="#isi-report"
+            role="tab"
+            aria-controls="isi-report"
+            aria-selected="true"
+            >Report</a
+          >
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link"
+            id="material-tab"
+            href="#material-tab"
+            data-bs-toggle="pill"
+            data-bs-target="#isi-material"
+            role="tab"
+            aria-controls="isi-material"
+            aria-selected="false"
+            >Material</a
+          >
+        </li>
+
+        <li class="nav-item ms-auto">
+          <div class="d-flex gap-2">
+            <!-- Form Check -->
+            <div class="form-check form-check-switch" id="buatLaporanDiv">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                value=""
+                id="buatLaporanButton"
+              />
+              <label
+                class="form-check-label btn-sm"
+                for="buatLaporanButton"
+                id="buatLaporanButton"
+              >
+                <span class="form-check-default">
+                  <i class="bi-person-plus-fill"></i> Buat Laporan
+                </span>
+                <span class="form-check-active">
+                  <i class="bi-check-lg me-2"></i> Tunggu Sebentar ...
+                </span>
+              </label>
+            </div>
+            <div
+              class="form-check form-check-switch d-none"
+              id="buatMaterialDiv"
+              data-bs-toggle="modal"
+              data-bs-target=".material_modal"
+            >
+              <input
+                class="form-check-input"
+                type="checkbox"
+                value=""
+                id="buatMaterialButton"
+              />
+              <label
+                class="form-check-label btn-sm"
+                for="buatMaterialButton"
+                id="buatMaterialButton"
+              >
+                <span class="form-check-default">
+                  <i class="bi-person-plus-fill"></i> Tambah Material
+                </span>
+                <span class="form-check-active">
+                  <i class="bi-check-lg me-2"></i> Tunggu Sebentar ...
+                </span>
+              </label>
+            </div>
+            <!-- End Form Check -->
+          </div>
+        </li>
+      </ul>
+    </div>
+    <!-- End Nav -->
+
+    <!-- Modal Tambah Material -->
+    <div
+      class="modal fade material_modal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="title_material_modal"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+          <div class="modal-header card-header-content-between">
+            <h5 class="modal-title h4" id="title_material_modal">
+              Buat Material Baru
+            </h5>
+            <div class="text-center">
+              <ul class="nav nav-segment" role="tablist">
+                <li class="nav-item">
+                  <a
+                    class="js-loading-state-invoker nav-link active"
+                    id="field-material-manual-tab"
+                    data-bs-toggle="pill"
+                    href="#field-material-manual"
+                    role="tab"
+                    aria-controls="field-material-manual"
+                    aria-selected="true"
+                    data-hs-loading-state-options='{
+               "targetEl": "#field-material-manual"
+             }'
+                    >Mode Manual</a
+                  >
+                </li>
+                <li class="nav-item">
+                  <a
+                    class="js-loading-state-invoker nav-link"
+                    id="field-material-file-tab"
+                    data-bs-toggle="pill"
+                    href="#field-material-file"
+                    role="tab"
+                    aria-controls="field-material-file"
+                    aria-selected="false"
+                    data-hs-loading-state-options='{
+               "targetEl": "#field-material-file"
+             }'
+                    >Mode File</a
+                  >
+                </li>
+              </ul>
+            </div>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <!-- Material -->
+            <div class="tab-content">
+              <div
+                class="tab-pane fade show active"
+                id="field-material-manual"
+                role="tabpanel"
+                aria-labelledby="field-material-manual-tab"
+              >
+                <!-- Form buat Material -->
+                <form id="form-material">
+                  <div id="typeAlat" class="row mb-4">
+                    <label
+                      class="text-center col-sm-3 col-form-label form-label"
+                      >Alat</label
+                    >
+                    <div class="col-sm-9">
+                      <div class="input-group input-group-sm-vertical">
+                        <label class="form-control" for="oduCheck">
+                          <span class="form-check">
+                            <input
+                              type="radio"
+                              class="form-check-input"
+                              name="alatCheck"
+                              id="oduCheck"
+                              value="ODU"
+                              checked
+                            />
+                            <span class="form-check-label">ODU</span>
+                          </span>
+                        </label>
+                        <label class="form-control" for="iduCheck">
+                          <span class="form-check">
+                            <input
+                              type="radio"
+                              class="form-check-input"
+                              name="alatCheck"
+                              id="iduCheck"
+                              value="IDU"
+                            />
+                            <span class="form-check-label">IDU</span>
+                          </span>
+                        </label>
+                        <label class="form-control" for="modemCheck">
+                          <span class="form-check">
+                            <input
+                              type="radio"
+                              class="form-check-input"
+                              name="alatCheck"
+                              id="modemCheck"
+                              value="MODEM"
+                            />
+                            <span class="form-check-label">MODEM</span>
+                          </span>
+                        </label>
+                        <label class="form-control" for="lainnyaCheck">
+                          <span class="form-check">
+                            <input
+                              type="radio"
+                              class="form-check-input"
+                              name="alatCheck"
+                              id="lainnyaCheck"
+                              value="LAINNYA"
+                            />
+                            <span class="form-check-label">LAINNYA</span>
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="material" class="row mb-4">
+                    <label
+                      for="material"
+                      class="text-center col-sm-3 col-form-label form-label"
+                      >Material
+                      <i
+                        class="bi-question-circle text-body ms-1"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="Informasi Material"
+                        data-bs-original-title="Informasi Material."
+                        aria-label="Informasi Material"
+                      ></i
+                    ></label>
+
+                    <div class="col-sm-9">
+                      <div class="input-group input-group-sm-vertical">
+                        <input
+                          type="text"
+                          class="form-control d-none"
+                          name="_id"
+                          id="_id"
+                          placeholder="Masukkan ID Material"
+                          aria-label="Masukkan ID Material"
+                          value=""
+                        />
+                        <input
+                          type="number"
+                          class="form-control"
+                          name="sap"
+                          id="sap"
+                          placeholder="Masukkan SAP Material"
+                          aria-label="Masukkan SAP Material"
+                          value=""
+                        />
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="deskripsi"
+                          id="deskripsi"
+                          placeholder="Masukkan deskripsi material"
+                          aria-label="Masukkan deskripsi material"
+                          value=""
+                        />
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="nama_alat"
+                          id="nama_alat"
+                          placeholder="ODU: IHG, IAG, IAP. Modem: Modem-A, Modem-EA. IDU: MDP-1200MB-1AA, MDP-400MB-1AB"
+                          aria-label="Masukkan Nama Alat"
+                          value=""
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Input ODU -->
+                  <div id="input-alat-lainnya" class="row mb-4">
+                    <label
+                      for="frequency"
+                      class="text-center col-sm-3 col-form-label form-label"
+                      >Input Lainnya
+                      <i
+                        class="bi-question-circle text-body ms-1"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="Frequency"
+                        data-bs-original-title="frequency"
+                        aria-label="frequency"
+                      ></i
+                    ></label>
+
+                    <div class="col-sm-9">
+                      <div class="input-group input-group-sm-vertical">
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="ukuran"
+                          id="ukuran"
+                          placeholder="Ukuran: 0.3m 0.6m, 1.2m, 1.8m, 2.4m, 3.0m"
+                          aria-label="Masukkan Ukuran Alat tersebut"
+                          value=""
+                          onblur="if (this.value.length > 0) this.value = this.value + 'M'"
+                        />
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="frequency"
+                          id="frequency"
+                          placeholder="Masukkan Frequency"
+                          aria-label="Masukkan Frequency"
+                          value=""
+                          maxlength="2"
+                          onblur="if (this.value.length > 0) this.value = this.value + 'GHZ'"
+                        />
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="subband_odu"
+                          id="subband_odu"
+                          placeholder="Masukkan Sub Band ODU"
+                          aria-label="Masukkan Sub Band ODU"
+                          value=""
+                          maxlength="1"
+                        />
+                        <select
+                          class="js-select form-select"
+                          id="HiLo_odu"
+                          data-hs-tom-select-options='{"searchInDropdown": false}'
+                        >
+                          <option
+                            value="HIGH"
+                            selected
+                            data-option-template='<span class="d-flex align-items-center">HIGH</span>'
+                          >
+                            HIGH
+                          </option>
+                          <option
+                            value="LOW"
+                            data-option-template='<span class="d-flex align-items-center">LOW</span>'
+                          >
+                            LOW
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- END Input ODU -->
+
+                  <div class="d-flex gap-3 justify-content-end">
+                    <!-- End Form Check -->
+                    <button
+                      class="csLoad submit-button btn btn-primary rounded-pill"
+                    >
+                      <span class="btn-text">Simpan</span>
+                      <span class="btn-loader"></span>
+                    </button>
+                    <button class="btn-warning cancel-button btn rounded-pill">
+                      <span>Cancel</span>
+                    </button>
+                  </div>
+                </form>
+                <!-- END Form buat Material -->
+              </div>
+              <div
+                class="tab-pane fade"
+                id="field-material-file"
+                role="tabpanel"
+                aria-labelledby="field-material-file-tab"
+              >
+                <form id="form-add-material-file">
+                  <div
+                    id="modalDropzone"
+                    class="js-dropzone row dz-dropzone dz-dropzone-card"
+                  >
+                    <div class="dz-message">
+                      <img
+                        class="avatar avatar-xl avatar-4x3 mb-3"
+                        src="/assets/svg/illustrations/oc-browse.svg"
+                        alt="Image Description"
+                      />
+
+                      <h5>Drag and drop your file here</h5>
+
+                      <p class="mb-2">or</p>
+
+                      <span class="btn btn-white btn-sm">Browse files</span>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button
+                      type="button"
+                      class="btn btn-white"
+                      data-bs-dismiss="modal"
+                    >
+                      Close
+                    </button>
+                    <button
+                      type="button"
+                      id="simpanFile"
+                      class="btn btn-primary"
+                    >
+                      Save changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+            <!-- End Material -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- END Modal Tambah Material -->
+
+    <!-- Isi Tab -->
+    <!-- Isi Tab Report -->
+    <div class="tab-content">
+      <div class="row tab-content">
+        <div
+          class="tab-pane fade show active"
+          id="isi-report"
+          role="tabpanel"
+          aria-labelledby="report-tab"
+        >
+          Report Alita
+        </div>
+        <!-- End Report -->
+        <!-- Isi Tab Material -->
+        <div
+          class="tab-pane fade show active"
+          id="isi-material"
+          role="tabpanel"
+          aria-labelledby="material-tab"
+        ></div>
+        <!-- End Material -->
+      </div>
+    </div>
+    <!-- End TAB Report-->
+  </div>
+  <!-- End Col -->
+</div>

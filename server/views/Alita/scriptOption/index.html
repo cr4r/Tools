@@ -1,0 +1,522 @@
+<script src="../assets/datatables/js/jquery.dataTables.min.js"></script>
+<!-- <script src="/assets/dropzone/dist/dropzone-min.js"></script> -->
+<!-- <script src="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone-min.js"></script>
+<link
+  href="https://unpkg.com/dropzone@6.0.0-beta.1/dist/dropzone.css"
+  rel="stylesheet"
+  type="text/css"
+/> -->
+<script>
+  let urlMaterial = "<%-info.config.alita.material.url%>";
+  const apiClient = new ApiClient({
+    sanitize: false, // Nonaktifkan sanitasi global
+  });
+  const changeAlatCheck = (alat) => {
+    $(`#form-material #typeAlat input[name="alatCheck"]`).each(function () {
+      // Memeriksa apakah nilai radio button sama dengan alatValue
+      if ($(this).val() === alat) {
+        $(this).prop("checked", true); // Mengatur checked menjadi true
+      } else {
+        $(this).prop("checked", false); // Mengatur checked menjadi false untuk yang lain
+      }
+    });
+  };
+  function validateSendDataMaterial() {
+    aa = changeAlatCheck;
+    let alatCheck = $(`#form-material #typeAlat input[name="alatCheck"]`);
+    let sap = $("#sap").val();
+    let namaAlat = $("#nama_alat").val();
+    let frequency = $("#frequency").val();
+    let subbandOdu = $("#subband_odu").val();
+    let HiLoOdu = $("#HiLo_odu").val();
+
+    if (!alatCheck.length)
+      return { status: false, message: "Silakan pilih salah satu jenis alat" };
+    if (sap == "") return { status: false, message: "SAP harus di isi" };
+
+    filterAlat = ["IDU", "MODEM"];
+    if (filterAlat.includes(alatCheck.val())) {
+      if (
+        namaAlat == "" ||
+        frequency == "" ||
+        subbandOdu == "" ||
+        HiLoOdu == ""
+      )
+        return {
+          status: false,
+          message:
+            "Nama alat, frequency, subband ODU, dan HiLo ODU harus kosong jika IDU atau MODEM terpilih",
+        };
+    }
+    return { status: true, message: "Validasi berhasil" };
+  }
+  function hideTypeMaterial(type) {
+    const alatnyaSet = new Set(["ODU", "ANTENA", "LAINNYA"]); // Menggunakan Set untuk pencarian cepat
+    const inputFields = $("#input-alat-lainnya");
+    const frequencyInput = $("#input-alat-lainnya #frequency");
+    const ukuranInput = $("#input-alat-lainnya #ukuran");
+    const subbandInput = $("#input-alat-lainnya #subband_odu");
+    const hiLoInput = $("#input-alat-lainnya #HiLo_odu");
+    const upperType = type.toUpperCase(); // Simpan hasil toUpperCase
+
+    // Tampilkan atau sembunyikan input fields berdasarkan tipe
+    if (alatnyaSet.has(upperType)) {
+      inputFields.show();
+
+      // Tampilkan atau sembunyikan subband dan HiLo berdasarkan tipe
+      const isOdu = upperType === "ODU";
+      subbandInput.toggle(isOdu);
+      hiLoInput.toggle(isOdu);
+      ukuranInput.toggle(!isOdu);
+
+      // Tampilkan atau sembunyikan frequency berdasarkan tipe
+      frequencyInput.toggle(isOdu || upperType === "LAINNYA");
+    } else {
+      inputFields.hide();
+    }
+  }
+  //
+  //
+  /////////////////// START Klik hapus Material /////////////////////
+  function hapusMaterial(sap, btn) {
+    const timer = new Timer();
+    timer.start();
+    toolTip(btn, "Silahkan tunggu!!!");
+    $.ajax({
+      method: "DELETE",
+      data: null,
+      url: `${urlMaterial}/${sap}`,
+      success: ({ status, message }) => {
+        showToast(status ? "BERHASIL !!!" : "GAGAL !!!", message, timer.stop());
+        setTimeout(function () {
+          btn.prop("disabled", false);
+        }, 1000);
+        status
+          ? $(`#isi-material #bodyTabelMaterial tr#${sap}`).remove()
+          : toolTip(btn, "Delete");
+      },
+      error: ({ responseText }) => {
+        showToast("ERROR !!!", JSON.parse(responseText).message, timer.stop());
+        btn.prop("disabled", false);
+        toolTip(btn, "Delete");
+      },
+    });
+  }
+  /////////////////// END Klik hapus Material /////////////////////
+  //
+  //
+  /////////////////// START Klik edit Material /////////////////////
+  async function editMaterial(index) {
+    changeButtonSubmit(true);
+    // Ambil data material dari localStorage
+    let dataM = await JSON.parse(localStorage.getItem("dataMaterial"));
+    let dataMaterials = await binarySearch(dataM, index);
+
+    // Memilih Alat ODU / IDU / MODEM
+    hideTypeMaterial(dataMaterials.alat);
+    // Isi form dengan data material
+    $(".material_modal #_id").val(dataMaterials._id);
+    $(".material_modal #sap").val(dataMaterials.sap);
+    $(".material_modal #deskripsi").val(dataMaterials.deskripsi);
+    $(".material_modal #nama_alat").val(dataMaterials.nama_alat);
+    $(".material_modal #frequency").val(dataMaterials.frequency);
+    $(".material_modal #subband_odu").val(dataMaterials.subband_odu);
+    $(".material_modal #HiLo_odu").val(dataMaterials.HiLo_odu);
+    changeAlatCheck(dataMaterials.alat);
+    $(".material_modal .submit-button .btn-text").text("EDIT");
+    // Tampilkan modal edit material
+    $(".material_modal").modal("show");
+    $(".material_modal .modal-header #field-material-file-tab").prop(
+      "disabled",
+      true
+    );
+  }
+  /////////////////// END Klik edit Material /////////////////////
+  //
+  //
+  /////////////////// START Buat Tabel Material /////////////////////
+  async function buatTabelMaterial() {
+    const timer = new Timer();
+    timer.start();
+    // Buat div paling atas
+    var divTableMaterial = $("<div>", {
+      class: "card div_table_material",
+    });
+
+    // Buat header
+    var header = $("<div>", {
+      class: "card-header",
+    });
+
+    var row = $("<div>", {
+      class: "row justify-content-between align-items-center flex-grow-1",
+    });
+
+    var col1 = $("<div>", {
+      class: "col-12 col-md",
+    });
+
+    var dFlex = $("<div>", {
+      class: "d-flex justify-content-between align-items-center",
+    });
+
+    var h5 = $("<h5>", {
+      class: "card-header-title",
+      text: "Materials",
+    });
+
+    dFlex.append(h5);
+    col1.append(dFlex);
+    row.append(col1);
+
+    var col2 = $("<div>", {
+      class: "col-auto",
+    });
+
+    var form = $("<form>");
+
+    var divInput = $("<div>", {
+      class: "input-group input-group-merge input-group-flush",
+    });
+
+    var divPrepend = $("<div>", {
+      class: "input-group-prepend input-group-text",
+    });
+
+    var i = $("<i>", {
+      class: "bi-search",
+    });
+
+    divPrepend.append(i);
+    divInput.append(divPrepend);
+
+    var input = $("<input>", {
+      id: "datatableWithSearchInput",
+      type: "search",
+      class: "form-control",
+      placeholder: "Search users",
+      "aria-label": "Search users",
+    });
+
+    divInput.append(input);
+    form.append(divInput);
+    col2.append(form);
+    row.append(col2);
+
+    header.append(row);
+
+    // Buat tabel
+    var divTableResponsive = $("<div>", {
+      class: "table-responsive datatable-custom",
+    });
+
+    var table = $("<table>", {
+      class:
+        "js-datatable-material table table-borderless table-thead-bordered table-nowrap table-align-middle card-table",
+      "data-hs-datatables-options": JSON.stringify({
+        order: [],
+        search: "#datatableWithSearchInput",
+        isResponsive: false,
+        isShowPaging: false,
+        pagination: "datatableWithSearchPagination",
+      }),
+    });
+
+    var thead = $("<thead>", {
+      class: "thead-light",
+    });
+
+    var tr = $("<tr>");
+    tr.append($("<th>", { text: "SAP" }));
+    tr.append($("<th>", { text: "Deskripsi" }));
+    tr.append($("<th>", { text: "Alat" }));
+    tr.append($("<th>", { text: "Nama Alat" }));
+    tr.append($("<th>", { text: "" }));
+
+    thead.append(tr);
+    table.append(thead);
+
+    var tbody = $("<tbody>", {
+      id: "bodyTabelMaterial",
+    });
+
+    table.append(tbody);
+
+    divTableResponsive.append(table);
+
+    // Buat footer
+    var footer = $("<div>", {
+      class: "card-footer",
+    });
+
+    var divPagination = $("<div>", {
+      class: "d-flex justify-content-center justify-content-sm-end",
+    });
+
+    var nav = $("<nav>", {
+      id: "datatableWithSearchPagination",
+      "aria-label": "Activity pagination",
+    });
+
+    divPagination.append(nav);
+    footer.append(divPagination);
+
+    $(".div_table_material").html("");
+    // Tambahkan header, tabel, dan footer ke div paling atas
+    divTableMaterial.append(header);
+    divTableMaterial.append(divTableResponsive);
+    divTableMaterial.append(footer);
+
+    // Tambahkan div paling atas ke .div_table_material
+    $("#isi-material").html(divTableMaterial);
+
+    // Tampilkan teks "Sedang Load Data"
+    var loadingText = $("<p>", {
+      text: "Sedang Load Data...",
+      class: "loading-text",
+    });
+    $(".div_table_material").append(loadingText);
+
+    // Load data dari /alita/report/material
+    let { status, message } = await apiClient.send({
+      url: urlMaterial,
+      method: "GET",
+    });
+    if (!status)
+      return showToast(
+        "GAGAL !!!",
+        message || "Gagal refresh data material",
+        timer ? timer.stop() : ""
+      );
+    $(".div_table_material .loading-text").remove();
+    // Hapus teks "Sedang Load Data..."
+    localStorage.setItem("dataMaterial", JSON.stringify(message));
+    // Tambahkan data ke tbody menggunakan template string
+    var template = "";
+    if (status) {
+      $.each(message, function (index, value) {
+        template += `
+<tr id="${value.sap}">
+  <td>${value.sap || "-"}</td>
+  <td>${value.deskripsi || "-"}</td>
+  <td>${value.alat.replace("_", " ") || "-"}</td>
+  <td>${value.nama_alat || "-"}</td>
+  <td class="d-flex justify-content-end"><button type="button" class="btn btn-white btn-sm btnEditM" id="${
+    value.sap
+  }"><i class="bi-pencil-fill me-1"></i>Edit</button>
+  <button type="button" class="btn btn-danger btn-sm btnDeleteM" id="${
+    value.sap
+  }"><i class="bi bi-trash-fill"></i> Delete</button></td></tr>`;
+      });
+      tbody.html(template);
+      HSCore.components.HSDatatables.init(".js-datatable-material");
+      $("#isi-material .card-header-title").text(
+        `Ada ${message.length} material`
+      );
+      ////////////////// START Tombol Delete dan edit di table material //////////////////
+      $("#isi-material #bodyTabelMaterial").on(
+        "click",
+        ".btnEditM, .btnDeleteM",
+        function () {
+          const sap = $(this).attr("id");
+          if ($(this).hasClass("btnEditM")) {
+            editMaterial(sap);
+          } else {
+            hapusMaterial(sap, $(this));
+          }
+        }
+      );
+      ////////////////// END Tombol Delete dan edit di table material //////////////////
+      showToast("BERHASIL !!!", "Tabel telah di refresh", timer.stop());
+    } else {
+      showToast("GAGAL !!!", "Gagal refresh tabel", timer.stop());
+    }
+  }
+  /////////////////// END Buat Tabel Material /////////////////////
+</script>
+<script>
+  /////////////////// Proses  Pengiriman Data /////////////////////
+  // Select the radio buttons and input fields
+  const radioButtonsAlat = $('#form-material input[name="alatCheck"]');
+  hideTypeMaterial("odu");
+
+  //// Add event listener to radio buttons
+  radioButtonsAlat.on("change", function () {
+    const selectedValue = $(this)[0].id;
+    hideTypeMaterial(selectedValue.slice(0, -5).toUpperCase());
+  });
+
+  //// Submit Material
+  $(".material_modal form#form-material").submit(async (e) => {
+    let tombolSubmit = $("#form-material .submit-button .btn-text");
+    e.preventDefault(); // prevent default form submission behavior
+    let cekData = validateSendDataMaterial();
+    let submitButton = $(".material_modal .submit-button");
+    //// Handle btn submit saat proses
+    changeButtonSubmit(false);
+    if (cekData.status) {
+      const timer = new Timer();
+      timer.start();
+
+      const data = await getDataForm("#form-material");
+      data.alat = document
+        .querySelector(`[name='alatCheck']:checked`)
+        .id.replace("Check", "")
+        .toUpperCase();
+      const typeForm = submitButton.text().trim() == "EDIT" ? "PUT" : "POST";
+
+      try {
+        const { status, message } = await apiClient.send({
+          method: typeForm,
+          url: urlMaterial,
+          data,
+          timer,
+          submitButton,
+        });
+        showToast(status ? "BERHASIL !!!" : "GAGAL !!!", message, timer.stop());
+        changeButtonSubmit(true, submitButton);
+      } catch (e) {
+        handleErr({ e, timer, submitButton });
+      }
+    } else {
+      showToast("GAGAL !!!", cekData.message, "0 ms");
+      changeButtonSubmit(true, submitButton);
+    }
+  });
+  /////////////////// END Proses  Pengiriman Data /////////////////////
+
+  $(document).ready(function () {
+    ////////////////// Start function Developer //////////////////
+    // $("#material-tab")[0].click();
+    ////////////////// End function Developer //////////////////
+    //
+    //
+    $("#form-material input, #form-material select").on("change", function () {
+      let tombolSubmit = $("#form-material .submit-button");
+      let validData = validateSendDataMaterial();
+      changeButtonSubmit(validData.status);
+      // status ? changeButtonSubmit(true) : changeButtonSubmit(false);
+    });
+    ////////////////// Start Klik tombol buat material //////////////////
+    $("#buatMaterialButton").on("change", function () {
+      changeButtonSubmit(true);
+      if ($(this).is(":checked")) {
+        setTimeout(function () {
+          $("#buatMaterialButton").prop("checked", false);
+        }, 1000);
+        $(".material_modal form#form-material input")
+          .prop("checked", false)
+          .val("")
+          .removeAttr("disabled readonly");
+
+        $(".material_modal #title_material_modal").text("Buat Material Baru");
+        $(".material_modal .submit-button .btn-text").text("SIMPAN");
+        $(".material_modal .modal-header #field-material-file-tab").prop(
+          "disabled",
+          false
+        );
+        // INIT Dropzone
+        Dropzone.options.modalDropzone = {
+          url: "<%=info.config.alita.material.url+'/upload'%>", // Ganti dengan URL endpoint server Anda
+          autoProcessQueue: false, // Jangan proses otomatis saat file ditambahkan
+          init: function () {
+            let timer = new Timer();
+            let drpzn = this;
+            let idButton = "#form-add-material-file button#simpanFile";
+            // Ketika tombol "Simpan" ditekan
+            document
+              .querySelector(idButton)
+              .addEventListener("click", function (e) {
+                e.preventDefault();
+                if (drpzn.getQueuedFiles().length > 0) {
+                  drpzn.processQueue(); // Proses antrian file jika ada
+                } else {
+                  console.log("Tidak ada file untuk diunggah.");
+                }
+              });
+
+            // Menangani event ketika file berhasil diunggah
+            this.on("success", function (file, response) {
+              console.log("File berhasil diunggah:", response);
+              showToast(
+                response.status ? "BERHASIL !!!" : "GAGAL !!!",
+                response.message,
+                timer.stop()
+              );
+              changeButtonSubmit(true, idButton);
+            });
+
+            // Menangani event ketika terjadi kesalahan saat mengunggah
+            this.on("error", function (file, errorMessage) {
+              console.error("Terjadi kesalahan saat mengunggah:", errorMessage);
+              changeButtonSubmit(false, idButton);
+            });
+            this.on("sending", function (file, xhr, formData) {
+              timer.start();
+              changeButtonSubmit(false, idButton);
+              const newUrl = "<%=info.config.alita.material.url+'/upload'%>";
+              xhr.open("POST", newUrl, true);
+            });
+          },
+        };
+
+        // Cek apakah Dropzone sudah ada
+        if (Dropzone.instances.length > 0) {
+          // Hentikan semua instans Dropzone yang ada
+          Dropzone.instances.forEach(function (dropzone) {
+            dropzone.destroy();
+          });
+        }
+        HSCore.components.HSDropzone.init(".js-dropzone");
+      }
+    });
+    ////////////////// END Klik tombol buat material //////////////////
+    //
+    //
+    ////////////////// Start Klik tombol buat laporan //////////////////
+    const createButton = document.getElementById("buatLaporanButton");
+    createButton.addEventListener("click", function () {
+      window.location.replace("<%-info.config.alita.report.url%>");
+    });
+    ////////////////// END Klik tombol buat laporan //////////////////
+    //
+    //
+    ////////////////// Start Klik Tab //////////////////
+    let tabs = {
+      report: $("#report-tab"),
+      material: $("#material-tab"),
+    };
+
+    let divs = {
+      report: $("#buatLaporanDiv"),
+      material: $("#buatMaterialDiv"),
+    };
+
+    Object.keys(tabs).forEach((tab) => {
+      tabs[tab].on("shown.bs.tab", () => {
+        if (tab === "material") {
+          buatTabelMaterial();
+        } else {
+          console.log("Report tab diklik!");
+        }
+        divs[tab].removeClass("d-none");
+      });
+
+      tabs[tab].on("hidden.bs.tab", () => {
+        divs[tab].addClass("d-none");
+      });
+    });
+    ////////////////// END Klik Tab //////////////////
+    //
+    //
+    ////////////////// Start Tutup modal edit material //////////////////
+    $(".material_modal .cancel-button").on("click", function (e) {
+      e.preventDefault();
+      $(".material_modal").modal("hide");
+      buatTabelMaterial();
+    });
+    ////////////////// END Tutup modal edit material //////////////////
+  });
+
+  $("#material-tab")[0].click();
+</script>

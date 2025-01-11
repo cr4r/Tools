@@ -1,0 +1,879 @@
+<script>
+  // Fungsi untuk mengambil data dari checkbox yang dipilih
+  function getSelectedDataTable(idTable) {
+    // Ambil semua checkbox yang dipilih
+    const selectedCheckboxes = document.querySelectorAll(
+      idTable + ' input[type="checkbox"]:checked'
+    );
+
+    // Array untuk menyimpan data dari baris yang dipilih
+    const selectedData = [];
+
+    // Loop melalui semua checkbox yang dipilih
+    selectedCheckboxes.forEach((checkbox) => {
+      // Ambil baris dari checkbox
+      const row = checkbox.closest("tr");
+      // Ambil data dari baris (misalnya, ambil data dari kolom tertentu)
+      const rowData = {
+        id: row.id,
+        sap: row.cells[1].innerText,
+        deskripsi: row.cells[2].innerText,
+        serialNumber: row.cells[3].innerText,
+        qty: row.cells[4].innerText,
+      };
+
+      // Tambahkan data ke array
+      selectedData.push(rowData);
+    });
+
+    return selectedData;
+  }
+  //// Function buat table
+  const createTable = (containerId, tableOptions = {}) => {
+    const {
+      tableClass = "js-stok-manual-dismantle table table-borderless table-thead-bordered table-nowrap table-align-middle card-table",
+      dataOptions = '{"order":[],"search":"#datatableWithSearchInput","isResponsive":false,"isShowPaging":false,"pagination":"datatableWithSearchPagination"}',
+      headers = [],
+      rows = [],
+      footer = {
+        class: "",
+        divClass: "",
+        nav: {
+          id: "datatableWithSearchPagination",
+          ariaLabel: "Activity pagination",
+        },
+      },
+      title = "Stok Manual Dismantle",
+      searchPlaceholder = "Search users",
+    } = tableOptions;
+
+    //// Jika ada actions, maka munculkan tombol
+    const isActions = headers.includes("Actions");
+    const indexActions = isActions ? headers.indexOf("Actions") : null;
+
+    const parentContainer = document.getElementById(containerId);
+    if (!parentContainer) return null; // Validasi jika container tidak ditemukan
+    // Menghapus konten sebelumnya
+    parentContainer.innerHTML = "";
+
+    // Membuat DocumentFragment untuk efisiensi
+    const fragment = document.createDocumentFragment();
+
+    //// Membuat header
+    const cardHeader = document.createElement("div");
+    cardHeader.className = "card-header";
+    const headerRow = document.createElement("div");
+    headerRow.className =
+      "row justify-content-between align-items-center flex-grow-1";
+
+    const titleCol = document.createElement("div");
+    titleCol.className = "col-12 col-md";
+    const titleDiv = document.createElement("div");
+    titleDiv.className = "d-flex justify-content-between align-items-center";
+    const h5 = document.createElement("h5");
+    h5.className = "card-header-title";
+    h5.textContent = title;
+
+    titleDiv.appendChild(h5);
+    titleCol.appendChild(titleDiv);
+    headerRow.appendChild(titleCol);
+    cardHeader.appendChild(headerRow);
+    fragment.appendChild(cardHeader);
+
+    //// Fungsi tombol delete
+    // Membuat elemen div utama
+    const colDivDel = document.createElement("div");
+    colDivDel.className = "col-auto";
+
+    // Membuat elemen div untuk info datatable
+    const infoDivDel = document.createElement("div");
+    infoDivDel.id = "datatableWithCheckboxSelectCounterInfo";
+    infoDivDel.className = "me-2";
+    infoDivDel.style.display = "none"; // Menyembunyikan div secara default
+
+    // Membuat elemen div untuk konten di dalam info div
+    const contentDivDel = document.createElement("div");
+    contentDivDel.className = "d-flex align-items-center";
+
+    // Membuat elemen span untuk menampilkan jumlah yang dipilih
+    const countSpanDel = document.createElement("span");
+    countSpanDel.className = "fs-5 me-3";
+    countSpanDel.innerHTML = `
+    <span id="datatableWithCheckboxSelectCounter">0</span>
+    Selected
+`;
+
+    // Membuat elemen anchor untuk tombol hapus
+    const divDelBtn = document.createElement("a");
+    divDelBtn.className = `btn btn-sm btn-outline-danger delete-${containerId}`;
+    divDelBtn.href = "javascript:;";
+    divDelBtn.innerHTML = `
+    <i class="bi bi-trash"></i> Delete
+`;
+
+    // Menambahkan elemen ke dalam konten div
+    contentDivDel.appendChild(countSpanDel);
+    contentDivDel.appendChild(divDelBtn);
+
+    // Menambahkan konten div ke dalam info div
+    infoDivDel.appendChild(contentDivDel);
+
+    // Menambahkan info div ke dalam kolom utama
+    colDivDel.appendChild(infoDivDel);
+    headerRow.appendChild(colDivDel);
+    //////////////////
+
+    //// Membuat kolom pencarian
+    const searchCol = document.createElement("div");
+    searchCol.className = "col-auto";
+
+    const form = document.createElement("form");
+    const inputGroup = document.createElement("div");
+    inputGroup.className = "input-group input-group-merge input-group-flush";
+
+    const inputGroupPrepend = document.createElement("div");
+    inputGroupPrepend.className = "input-group-prepend input-group-text";
+    const searchIcon = document.createElement("i");
+    searchIcon.className = "bi-search";
+    inputGroupPrepend.appendChild(searchIcon);
+
+    const searchInput = document.createElement("input");
+    searchInput.id = "datatableWithSearchInput";
+    searchInput.type = "search";
+    searchInput.className = "form-control";
+    searchInput.placeholder = searchPlaceholder;
+    searchInput.setAttribute("aria-label", searchPlaceholder);
+
+    inputGroup.appendChild(inputGroupPrepend);
+    inputGroup.appendChild(searchInput);
+    form.appendChild(inputGroup);
+    searchCol.appendChild(form);
+    headerRow.appendChild(searchCol);
+
+    // Membuat table menjadi responsive
+    const divTableResponsive = document.createElement("div");
+    divTableResponsive.className = "table-responsive datatable-custom";
+
+    // Membuat elemen table
+    const table = document.createElement("table");
+    table.className = tableClass;
+    table.setAttribute("data-hs-datatables-options", dataOptions);
+
+    //// Membuat elemen thead dan tr
+    const thead = document.createElement("thead");
+    const headerRowTable = document.createElement("tr");
+
+    //// Menambahkan th ke dalam tr
+    headers.forEach((header, index) => {
+      if (index == 0) {
+        // Membuat elemen th untuk checkbox
+        const thCheck = document.createElement("th");
+        thCheck.className = "table-column-pe-0";
+
+        // Membuat elemen div untuk checkbox
+        const div = document.createElement("div");
+        div.className = "form-check";
+
+        // Membuat elemen input checkbox
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "form-check-input";
+        checkbox.id = "datatableWithCheckboxSelectAll";
+
+        // Membuat elemen label untuk checkbox
+        const label = document.createElement("label");
+        label.className = "form-check-label";
+        label.htmlFor = "datatableWithCheckboxSelectAll"; // Menghubungkan label dengan checkbox
+
+        // Menambahkan checkbox dan label ke dalam div
+        div.appendChild(checkbox);
+        div.appendChild(label);
+
+        // Menambahkan div ke dalam th
+        thCheck.appendChild(div);
+        headerRowTable.appendChild(thCheck);
+      }
+      const th = document.createElement("th");
+      th.textContent = header;
+      headerRowTable.appendChild(th);
+    });
+
+    thead.appendChild(headerRowTable);
+    table.appendChild(thead);
+
+    //// Membuat elemen tbody
+    const tbody = document.createElement("tbody");
+    tbody.id = "body-table-" + containerId;
+
+    //// Menambahkan baris ke dalam tbody
+    rows.forEach((row, index) => {
+      const tr = document.createElement("tr");
+      row.forEach((cell, indexx) => {
+        if (indexx == 0) {
+          tr.id = cell;
+          // Membuat elemen td untuk checkbox
+          const tdCheck = document.createElement("td");
+          tdCheck.className = "table-column-pe-0";
+
+          // Membuat elemen div untuk checkbox
+          const divCheck = document.createElement("div");
+          divCheck.className = "form-check";
+
+          // Membuat elemen input checkbox
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.className = "form-check-input";
+          checkbox.id = "usersDataCheck1";
+
+          // Membuat elemen label untuk checkbox
+          const label = document.createElement("label");
+          label.className = "form-check-label";
+          label.htmlFor = "usersDataCheck1"; // Menghubungkan label dengan checkbox
+
+          // Menambahkan checkbox dan label ke dalam div
+          divCheck.appendChild(checkbox);
+          divCheck.appendChild(label);
+
+          // Menambahkan div ke dalam td
+          tdCheck.appendChild(divCheck);
+          tr.appendChild(tdCheck);
+        } else {
+          const td = document.createElement("td");
+          //// Jika ada array datanya melebihi dari 4, maka di wrap
+          if (Array.isArray(cell)) {
+            let cellEdit = document.createDocumentFragment(); // Gunakan fragment untuk efisiensi;
+            cell.forEach((isiTd) => {
+              const spanTd = document.createElement("span");
+              spanTd.className = "badge bg-soft-dark text-dark ms-1";
+              spanTd.textContent = isiTd;
+              cellEdit.appendChild(spanTd);
+            });
+
+            if (cell.length > 4) {
+              const btnTd = document.createElement("button");
+              btnTd.className = "btn btn-link p-0";
+              btnTd.type = "button";
+              btnTd.setAttribute("data-bs-toggle", "collapse");
+              btnTd.setAttribute("data-bs-target", `#serial${indexx}`);
+              btnTd.setAttribute("aria-expanded", "false");
+              btnTd.setAttribute("aria-controls", `serial${indexx}`);
+              btnTd.textContent = "Lihat SN";
+
+              // Membuat div collapse
+              const collapseDiv = document.createElement("div");
+              collapseDiv.className = "collapse mt-2 wrap-text";
+              collapseDiv.id = `serial${indexx}`;
+              collapseDiv.appendChild(cellEdit.cloneNode(true)); // Tambahkan isi cellEdit
+
+              // Menambahkan tombol dan div collapse ke kolom
+              td.appendChild(btnTd);
+              td.appendChild(collapseDiv);
+            } else {
+              td.appendChild(cellEdit); // Jika tidak collapse, langsung tampilkan isi
+            }
+          } else if (typeof cell === "number") {
+            td.textContent = cell.toString(); // Ubah number menjadi string sebelum menampilkan
+          } else if (cell == "Actions") {
+            td.innerHTML = `<div class="btn-group" role="group">
+                    <a class="btn btn-white btn-sm" data-bs-toggle="modal" data-bs-target=".modal-add-stok-manual-dismantle">
+                      <i class="bi-pencil-fill me-1"></i> Edit
+                    </a>`;
+          } else {
+            td.textContent = cell;
+          }
+          tr.appendChild(td);
+        }
+      });
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    divTableResponsive.appendChild(table);
+    fragment.appendChild(divTableResponsive);
+
+    //// Membuat footer
+    // Membuat footer
+    const footerElement = document.createElement("div");
+    footerElement.className = "card-footer";
+
+    // Menampilkan berapa banyak isi
+    const fixIsi = document.createElement("div");
+    fixIsi.className =
+      "row justify-content-center justify-content-sm-between align-items-sm-center";
+
+    // Membuat kolom untuk menampilkan jumlah isi
+    const colFixIsi = document.createElement("div");
+    colFixIsi.className = "col-sm mb-2 mb-sm-0";
+
+    const filShow = document.createElement("div");
+    filShow.className =
+      "d-flex justify-content-center justify-content-sm-start align-items-center";
+
+    // Membuat elemen untuk menampilkan teks "Showing:"
+    const showingText = document.createElement("span");
+    showingText.className = "me-2";
+    showingText.textContent = "Showing:";
+
+    // Membuat elemen select
+    const tomSelectContainer = document.createElement("div");
+    tomSelectContainer.className = "tom-select-custom";
+
+    const select = document.createElement("select");
+    select.id = "datatableEntries";
+    select.className = "js-select form-select form-select-borderless w-auto";
+    select.setAttribute("autocomplete", "off");
+    select.setAttribute(
+      "data-hs-tom-select-options",
+      JSON.stringify({
+        searchInDropdown: false,
+        hideSearch: true,
+      })
+    );
+
+    // Membuat opsi untuk select
+    const options = [5, 10, 20];
+    const selectOption = 10;
+    options.forEach((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      if (value == selectOption) {
+        option.setAttribute("selected", true);
+      } // Set opsi 10 sebagai yang terpilih
+      select.appendChild(option);
+    });
+
+    tomSelectContainer.appendChild(select);
+
+    // Membuat elemen untuk menampilkan "of"
+    const ofText = document.createElement("span");
+    ofText.className = "text-secondary me-2";
+    ofText.textContent = "of";
+
+    // Membuat elemen untuk menampilkan total qty
+    const totalQty = document.createElement("span");
+    totalQty.id = "datatableWithPaginationInfoTotalQty"; // Pastikan ID sesuai
+    // totalQty.textContent = selectOption;
+
+    // Menambahkan elemen ke kolom
+    filShow.appendChild(showingText);
+    filShow.appendChild(tomSelectContainer);
+    filShow.appendChild(ofText);
+    filShow.appendChild(totalQty);
+
+    // Masukkan isi ke div
+    colFixIsi.appendChild(filShow);
+
+    // Menambahkan kolom ke fixIsi
+    fixIsi.appendChild(colFixIsi);
+
+    // Membuat kontainer untuk navigasi
+    const footerNavContainer = document.createElement("div");
+    footerNavContainer.className = "col-sm-auto";
+    const footerNavContainerEnd = document.createElement("div");
+    footerNavContainerEnd.className =
+      "d-flex justify-content-center justify-content-sm-end";
+
+    // Membuat elemen navigasi
+    const nav = document.createElement("nav");
+    nav.id = "datatableWithSearchPagination"; // Set ID untuk navigasi
+    nav.setAttribute("aria-label", "Activity pagination");
+
+    // Menambahkan navigasi ke kontainer
+
+    footerNavContainerEnd.appendChild(nav);
+    footerNavContainer.appendChild(footerNavContainerEnd);
+
+    // Menambahkan fixIsi dan footerNavContainer ke footerElement
+    fixIsi.appendChild(footerNavContainer);
+    footerElement.appendChild(fixIsi);
+
+    fragment.appendChild(footerElement);
+
+    // Menambahkan semua elemen ke parentContainer
+    parentContainer.appendChild(fragment);
+
+    return parentContainer;
+  };
+
+  //// Membuat tinggi otomatis pada textarea
+  class SmartTextarea {
+    constructor(selector, options = {}) {
+      // Pastikan mendapatkan elemen dengan benar
+      this.textarea =
+        typeof selector === "string"
+          ? document.querySelector(selector)
+          : selector;
+
+      // Validasi elemen
+      if (!this.textarea) {
+        console.error("Elemen tidak ditemukan");
+        return;
+      }
+
+      this.options = {
+        minHeight: 50,
+        maxHeight: 300,
+        ...options,
+      };
+
+      this.init();
+    }
+
+    init() {
+      // Tambahkan pengecekan tambahan
+      if (!(this.textarea instanceof HTMLTextAreaElement)) {
+        console.error("Elemen bukan textarea");
+        return;
+      }
+
+      // Gunakan method addEventListener dengan pengecekan
+      if (this.textarea.addEventListener) {
+        this.textarea.addEventListener("input", () => this.adjustHeight());
+        this.textarea.addEventListener("change", () => this.adjustHeight());
+      } else {
+        console.error("Browser tidak mendukung addEventListener");
+      }
+      // Inisialisasi height awal
+      this.adjustHeight();
+    }
+
+    adjustHeight() {
+      try {
+        // Reset height to auto to calculate correct scroll height
+        this.textarea.style.height = "auto";
+
+        // Calculate new height
+        let newHeight = this.textarea.scrollHeight;
+
+        // Respect min and max height
+        newHeight = Math.max(this.options.minHeight, newHeight);
+        newHeight = Math.min(this.options.maxHeight, newHeight);
+
+        this.textarea.style.height = `${newHeight}px`;
+      } catch (error) {
+        console.error("Gagal menyesuaikan tinggi:", error);
+      }
+    }
+  }
+
+  function pecahString(str, delimiters = ["/", ","]) {
+    // Buat regex dari delimiter
+    let regex = new RegExp(delimiters.join("|"), "g");
+
+    return str
+      .split(regex)
+      .map((item) => item.trim())
+      .filter((item) => item !== "");
+  }
+
+  // toolTip(btn, "Silahkan tunggu!!!", "enabled")
+  function toolTip(btn, title, status = "disabled") {
+    btn.text("Wait...");
+    btn.prop(status, status == "enabled" ? false : true).attr({
+      "data-bs-toggle": "tooltip",
+      "data-bs-placement": "top",
+      title: title,
+    });
+  }
+  class Timer {
+    constructor() {
+      this.startTime = null;
+    }
+
+    start() {
+      this.startTime = performance.now();
+    }
+
+    stop() {
+      const endTime = performance.now();
+      const durationMs = (endTime - this.startTime).toFixed(2);
+      const durationS = (durationMs / 1000).toFixed(2);
+      const duration =
+        durationMs < 1000 ? `${durationMs} ms` : `${durationS} detik`;
+      return duration;
+    }
+  }
+  //// Fungsi untuk kirim data
+  /*
+      const apiClient = new ApiClient({
+        sanitize: false, // Nonaktifkan sanitasi global
+      });
+      try {
+        const { status, message } = await apiClient.send({
+          method: typeFormMaterial,
+          url: urlMaterial,
+          data,
+          timer,
+          submitButton: ".material_modal .submit-button",
+        });
+        showToast(status ? "BERHASIL !!!" : "GAGAL !!!", message, timer.stop());
+        changeButtonSubmit(true, submit_btn);
+      } catch (e) {
+        handleErr({e, timer, submitButton});
+      }
+    */
+  class ApiClient {
+    constructor(baseConfig = {}) {
+      this.baseConfig = {
+        timeout: 10000,
+        maxPayloadSize: 5000,
+        token: localStorage.getItem("token"),
+        sanitize: false,
+      };
+
+      // Gabungkan konfigurasi
+      Object.assign(this.baseConfig, baseConfig);
+
+      // Cache untuk mengurangi permintaan berulang
+      this.requestCache = new Map();
+    }
+
+    // Metode sanitasi data
+    // Metode sanitasi data
+    sanitizeData(data) {
+      return JSON.parse(JSON.stringify(data), (key, value) => {
+        // Batasi ukuran string jika diperlukan
+        if (
+          typeof value === "string" &&
+          value.length > this.baseConfig.maxPayloadSize
+        ) {
+          return value.substring(0, this.baseConfig.maxPayloadSize);
+        }
+        return value;
+      });
+    }
+
+    // Metode untuk membuat FormData yang fleksibel
+    createFlexibleFormData(jsonData = {}, files = []) {
+      const formData = new FormData();
+
+      // Tambahkan data JSON
+      if (Object.keys(jsonData).length > 0) {
+        formData.append("payload", JSON.stringify(this.sanitizeData(jsonData)));
+      }
+
+      // Tambahkan file
+      files.forEach((file, index) => {
+        if (file instanceof File) {
+          formData.append(`file_${index}`, file, file.name);
+        }
+      });
+
+      return formData;
+    }
+
+    // Metode utama pengiriman
+    async send(options = {}) {
+      const {
+        method = "GET",
+        url,
+        data = {},
+        params = {},
+        files = [],
+        cache = false,
+        submitButton,
+        contentType = "application/json",
+        sanitize,
+        timer,
+        onProgress, // Callback untuk progress upload
+      } = options;
+
+      // Tentukan opsi sanitasi
+      const sanitizeOption =
+        sanitize !== undefined ? sanitize : this.baseConfig.sanitize;
+
+      // Buat URL dengan query parameters untuk GET
+      const queryParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          queryParams.append(
+            key,
+            typeof value === "object" ? JSON.stringify(value) : value
+          );
+        }
+      });
+
+      // Gabungkan URL dengan query params untuk GET
+      const fullUrl =
+        method === "GET"
+          ? `${url}${
+              queryParams.toString() ? `?${queryParams.toString()}` : ""
+            }`
+          : url;
+
+      // Cek cache (hanya untuk GET)
+      if (method === "GET" && cache) {
+        const cachedResponse = this.requestCache.get(fullUrl);
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+      }
+
+      // Buat kontroler untuk timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(
+        () => controller.abort(),
+        this.baseConfig.timeout
+      );
+
+      try {
+        // Nonaktifkan tombol
+        if (submitButton) {
+          changeButtonSubmit(false, submitButton);
+        }
+
+        // Persiapkan headers
+        const headers = {
+          Authorization: `Bearer ${this.baseConfig.token || ""}`,
+        };
+
+        // Persiapkan body untuk metode selain GET
+        let body = null;
+        if (method !== "GET") {
+          switch (contentType) {
+            case "multipart/form-data":
+              // Gabungkan JSON dan file dalam FormData
+              body = this.createFlexibleFormData(data, files);
+              // Hapus Content-Type agar browser set boundary otomatis
+              break;
+
+            case "application/json":
+              // Untuk data JSON murni
+              headers["Content-Type"] = "application/json";
+              body = JSON.stringify(this.sanitizeData(data));
+              break;
+
+            default:
+              throw new Error("Tipe konten tidak didukung");
+          }
+        }
+
+        // Kirim request dengan XMLHttpRequest untuk progress tracking
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+
+          // Setup request
+          xhr.open(method, url, true);
+
+          // Set headers
+          Object.entries(headers).forEach(([key, value]) => {
+            xhr.setRequestHeader(key, value);
+          });
+
+          // Progress tracking
+          if (onProgress) {
+            xhr.upload.onprogress = (event) => {
+              if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                onProgress(percentComplete, event);
+              }
+            };
+          }
+
+          // Handlers
+          xhr.onload = () => {
+            clearTimeout(timeoutId);
+
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const response = JSON.parse(xhr.responseText);
+                resolve(response);
+              } catch (parseError) {
+                reject(new Error("Gagal parsing respons"));
+              }
+            } else {
+              reject(
+                new Error(xhr.responseText || "Gagal memproses permintaan")
+              );
+            }
+          };
+
+          xhr.onerror = () => {
+            clearTimeout(timeoutId);
+            reject(new Error("Kesalahan jaringan"));
+          };
+
+          xhr.onabort = () => {
+            clearTimeout(timeoutId);
+            reject(new Error("Request dibatalkan"));
+          };
+
+          // Kirim request
+          xhr.send(body);
+        });
+      } catch (error) {
+        // Tangani error
+        this.baseConfig.debug && console.error("Error dalam request:", error);
+        showToast(
+          "GAGAL !!!",
+          "Error dalam request, " + error,
+          timer ? timer.stop() : ""
+        );
+        if (submitButton) changeButtonSubmit(true, submitButton);
+        throw error;
+      } finally {
+        // Aktifkan kembali tombol
+        if (submitButton) changeButtonSubmit(true, submitButton);
+        // Bersihkan kontroler
+        controller.abort();
+      }
+    }
+
+    // Metode pembersihan cache
+    clearCache() {
+      this.requestCache.clear();
+    }
+  }
+  function handleErr(option = {}) {
+    const { e, timer, submitButton } = option;
+
+    let status = false;
+    let message = "Terjadi kesalahan";
+
+    // Cek tipe error dan sumber pesan
+    if (e.response && e.response.data) {
+      // Jika error dari axios atau fetch
+      status = e.response.data.status || false;
+      message = e.response.data.message || "Terjadi kesalahan";
+    } else if (e.message) {
+      // Untuk error biasa
+      try {
+        // Coba parse jika memang berbentuk JSON
+        const parsedError = JSON.parse(e.message);
+        status = parsedError.status || false;
+        message = parsedError.message || e.message;
+      } catch {
+        // Jika bukan JSON, gunakan pesan error asli
+        message = e.message;
+      }
+    }
+
+    if (timer) showToast("GAGAL !!!", message, timer.stop());
+    if (submitButton) changeButtonSubmit(true, submitButton);
+
+    // Logging error untuk debugging
+    console.error("Error details:", e);
+  }
+
+  function kirimData(optional) {
+    const { method, data, url, success, error, dataType } = optional;
+    $.ajax({
+      method,
+      url,
+      data: JSON.stringify(data),
+      success,
+      error,
+    });
+  }
+
+  const getDataForm = (formID) => {
+    formData = {};
+    $(formID)
+      .find("input, select, textarea")
+      .each(function () {
+        let idForm = $(this).attr("id");
+        let valForm = $(this).val();
+        if (idForm && valForm) {
+          let value = valForm.trim();
+          if (value.length > 0) {
+            let value,
+              $input = $(this);
+            type = $input.attr("type");
+
+            switch (type) {
+              case "checkbox":
+                valForm = $input.is(":checked");
+                break;
+              case "radio":
+                if ($input.is(":checked")) {
+                  valForm = $input.val();
+                } else {
+                  return;
+                }
+                break;
+              case "number":
+                valForm = $input.val() !== "" ? Number($input.val()) : null;
+                break;
+              default:
+                valForm = $input.val().trim();
+            }
+            formData[idForm] = valForm;
+          }
+        }
+      });
+    return formData;
+  };
+
+  // Fungsi pencarian biner
+  function binarySearch(arr, target) {
+    arr = arr.sort((a, b) => a.sap.localeCompare(b.sap));
+    let left = 0;
+    let right = arr.length - 1;
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      if (arr[mid].sap == target) {
+        return arr[mid];
+      } else if (arr[mid].sap < target) {
+        left = mid + 1;
+      } else {
+        right = mid - 1;
+      }
+    }
+    return null;
+  }
+
+  const liveToast = new bootstrap.Toast($("#liveToast")[0]);
+  function showToast(title, message, waktu = "-", icon = null) {
+    const toast = $("#liveToast");
+    toast
+      .find(".toast-header h5")
+      .addClass(
+        title == "BERHASIL !!!"
+          ? "text-success"
+          : title == "GAGAL !!!"
+          ? "text-danger"
+          : ""
+      )
+      .text(title);
+    toast.find(".toast-header small.waktu").text(waktu);
+    toast.find(".toast-body").text(message);
+    if (icon) {
+      toast.find(".toast-header img").attr("src", icon);
+    }
+    liveToast.show();
+  }
+  const changeButtonSubmit = (
+    cekBtn = true,
+    idnya = ".material_modal .submit-button"
+  ) => {
+    let submit_btn;
+    typeof idnya == "string" ? (submit_btn = $(idnya)) : (submit_btn = idnya);
+    cekBtn ? submit_btn.removeClass("loading") : submit_btn.addClass("loading");
+    submit_btn.prop("disabled", !cekBtn);
+  };
+
+  // Optimasi Modal agar tidak error saat menutup modal
+  function initModalAccessibility() {
+    const modals = document.querySelectorAll(".modal");
+
+    modals.forEach((modal) => {
+      modal.addEventListener("hide.bs.modal", handleModalState);
+      modal.addEventListener("show.bs.modal", handleModalState);
+    });
+
+    //
+    function handleModalState(event) {
+      const isHiding = event.type === "hide.bs.modal";
+      // Menggunakan setAttribute dan removeAttribute untuk efisiensi
+      if (isHiding) {
+        event.target.removeAttribute("aria-hidden");
+        event.target.inert = true;
+      } else {
+        event.target.removeAttribute("aria-hidden");
+        event.target.inert = false;
+      }
+    }
+  }
+  initModalAccessibility();
+</script>

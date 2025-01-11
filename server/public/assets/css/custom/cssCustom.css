@@ -1,0 +1,142 @@
+table td div.wrap-text {
+  max-width: 200px;
+  white-space: normal; /* Mengizinkan teks membungkus ke baris berikutnya */
+}
+
+/* ------------ Custom auto Resize pada textarea ------------ */
+.smart-textarea {
+  width: 100%;
+  min-height: 50px;
+  max-height: 300px;
+  resize: none;
+  overflow-y: auto;
+  box-sizing: border-box;
+  transition: height 0.2s ease;
+}
+/* ------------ END Custom auto Resize pada textarea ------------ */
+
+/* ------------ Button Loader ------------ */
+button.csLoad {
+  cursor: pointer; /* Kursor pointer saat hover */
+  position: relative; /* Posisi relatif untuk elemen anak */
+  overflow: hidden; /* Menyembunyikan elemen yang melampaui batas */
+  outline: none; /* Menghilangkan outline */
+  transition: all 0.4s ease; /* Transisi halus untuk semua properti */
+}
+
+button.csLoad .btn-text {
+  transition: opacity 0.3s ease; /* Transisi untuk teks */
+}
+
+button.csLoad .btn-loader {
+  position: absolute; /* Posisi absolut untuk loader */
+  top: 50%; /* Posisikan di tengah vertikal */
+  left: 50%; /* Posisikan di tengah horizontal */
+  transform: translate(-50%, -50%); /* Pusatkan loader */
+  width: 0; /* Lebar awal */
+  height: 0; /* Tinggi awal */
+  border: 4px solid transparent; /* Border transparan */
+  border-radius: 50%; /* Membuat loader berbentuk lingkaran */
+  border-top-color: #fff; /* Warna border atas */
+  animation: spin 0.8s linear infinite; /* Animasi berputar */
+  opacity: 0; /* Opasitas awal */
+  transition: opacity 0.3s ease, width 0.3s ease, height 0.3s ease; /* Transisi untuk loader */
+}
+
+@keyframes spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg); /* Putaran awal */
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg); /* Putaran akhir */
+  }
+}
+
+button.csLoad.loading {
+  background-color: #ed4c78; /* Warna latar belakang saat loading */
+}
+
+button.csLoad.loading .btn-text {
+  opacity: 0; /* Sembunyikan teks saat loading */
+}
+
+button.csLoad.loading .btn-loader {
+  width: 24px; /* Lebar loader saat loading */
+  height: 24px; /* Tinggi loader saat loading */
+  opacity: 1; /* Tampilkan loader */
+}
+/* ------------ Button Hover ------------ */
+button.cs-cover {
+  cursor: pointer;
+  background: transparent;
+  position: relative;
+  display: inline-block;
+  padding: 15px 30px;
+  outline: none;
+  border: 2px solid #0f0;
+  margin: 40px auto;
+  width: 150px;
+  height: 60px;
+  text-transform: uppercase;
+  font-weight: 900;
+  text-decoration: none;
+  letter-spacing: 2px;
+  color: #000;
+  -webkit-box-reflect: below 0px linier-gradient(to bottom, transparent, #0002);
+  transition: all 0.45s;
+}
+
+button.cs-cover:hover::before {
+  width: 60%;
+  height: 100%;
+  left: -2px;
+  box-shadow: 5px 0 0 #0f0, 5px 0 0 #0f0;
+  transition-delay: all 0.5s;
+}
+
+button.cs-cover:hover::after {
+  width: 60%;
+  height: 100%;
+  right: -2px;
+  box-shadow: -5px 0 0 #0f0, -5px 0 0 #0f0;
+  transition-delay: all 0.5s;
+}
+
+button.cs-cover:hover {
+  transition-delay: all 1.5s;
+  color: #fff;
+  box-shadow: 0 0 10px #0f0, 0 0 20px #0f0, 0 0 40px #0f0, 0 0 80px #0f0,
+    0 0 100px #0f0;
+}
+
+button.cs-cover span {
+  position: relative;
+  z-index: 100;
+}
+
+button.cs-cover::after {
+  content: "";
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 2px;
+  background: #0f0;
+  box-shadow: -5px -8px 0 #0f0, -5px 8px 0 #0f0;
+  transition: all 0.5s;
+}
+
+button.cs-cover::before {
+  content: "";
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 2px;
+  background: #0f0;
+  box-shadow: 5px -8px 0 #0f0, 5px 8px 0 #0f0;
+  transition: all 0.5s;
+}
+/* ------------ End Button Hover ------------ */
